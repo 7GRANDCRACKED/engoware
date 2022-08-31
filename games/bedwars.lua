@@ -1418,7 +1418,7 @@ end
 
 do
     local scaffold = {["Enabled"] = false}
-    scaffold = GuiLibrary.Objects.WorldWindow.API.CreateOptionsButton({
+    scaffold = GuiLibrary.Objects.movementWindow.API.CreateOptionsButton({
         ["Name"] = "scaffold",
         ["Function"] = function(callback) 
             if callback then 
