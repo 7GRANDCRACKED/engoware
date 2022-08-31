@@ -1417,39 +1417,45 @@ shared.Check = true -- keep old game lighting or whatever
 end
 
 do 
-    local old
-    local Sprint = {}; Sprint = GuiLibrary.Objects.movementWindow.API.CreateOptionsButton({
-        Name = "scaffold",
-        Function = function(callback) 
-            if callback then
-                if isAlive() and lplr.Character:FindFirstChild("Humanoid") ~= nil then
-                        local block = getblockitem()
-                        --printtable(block)
-                        local newpos = lplr.Character.HumanoidRootPart.Position
-                        newpos = get3Vector( Vector3.new(newpos.X, lplr.Character.HumanoidRootPart.Position.Y - 4, newpos.Z) )
-                        local movedir = lplr.Character:FindFirstChild("Humanoid").MoveDirection
-                        if movedir.X==0 and movedir.Z==0 and lplr.Character:FindFirstChild("Humanoid").Jump==true  then 
-                            local velo = lplr.Character.HumanoidRootPart.Velocity
-                            lplr.Character.HumanoidRootPart.Velocity = Vector3.new(velo.X, 25, velo.Z)
-                        end
-                        if not isPointInMapOccupied(newpos) then
-                            bedwars["placeBlock"](newpos, block)
-                        end
-
-                        local expandpos = lplr.Character.HumanoidRootPart.Position + ((lplr.Character.Humanoid.MoveDirection.Unit))
-                        expandpos = get3Vector( Vector3.new(expandpos.X, lplr.Character.HumanoidRootPart.Position.Y-4, expandpos.Z) )
-                        if not isPointInMapOccupied(expandpos) then
-                            bedwars["placeBlock"](expandpos)
-                        end
-
-                        local expandpos2 = lplr.Character.HumanoidRootPart.Position + ((lplr.Character.Humanoid.MoveDirection.Unit*2))
-                        expandpos2 = get3Vector( Vector3.new(expandpos2.X, lplr.Character.HumanoidRootPart.Position.Y-4, expandpos2.Z) )
-                        if not isPointInMapOccupied(expandpos2) then
-                            bedwars["placeBlock"](expandpos2)
-                        end
-                    end
-                end)
-            end
-        end
-    })
+    local ChestStealer = {["Enabled"] = false}
+	local ChestStealerDistance = {["Value"] = 1}
+	local ChestStealDelay = tick()
+	ChestStealer = GuiLibrary.Objects.movementWindow.API.CreateOptionsButton({
+		["Name"] = "cheststealertest",
+		["Function"] = function(callback)
+			if callback then
+				BindToRenderStep("ChestStealer", function()
+					if ChestStealDelay <= tick() and isAlive() then
+						ChestStealDelay = tick() + 0.2
+						local rootpart = lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart")
+						for i,v in pairs(game:GetService("CollectionService"):GetTagged("chest")) do
+							if rootpart and (rootpart.Position - v.Position).magnitude <= ChestStealerDistance["Value"] and v:FindFirstChild("ChestFolderValue") then
+								local chest = v.ChestFolderValue.Value
+								local chestitems = chest and chest:GetChildren() or {}
+								if #chestitems > 0 then
+									bedwars["ClientHandler"]:GetNamespace("Inventory"):Get("SetObservedChest"):SendToServer(chest)
+									for i3,v3 in pairs(chestitems) do
+										if v3:IsA("Accessory") then
+											bedwars["ClientHandler"]:GetNamespace("Inventory"):Get("ChestGetItem"):CallServer(v.ChestFolderValue.Value, v3)
+										end
+									end
+									bedwars["ClientHandler"]:GetNamespace("Inventory"):Get("SetObservedChest"):SendToServer(nil)
+								end
+							end
+						end
+					end
+				end)
+			else
+				UnbindFromRenderStep("ChestStealer")
+			end
+		end,
+		["HoverText"] = "Grabs items from near chests."
+	})
+	ChestStealerDistance = ChestStealer.CreateSlider({
+		["Name"] = "Distance",
+		["Min"] = 0,
+		["Max"] = 18,
+		["Function"] = function() end,
+		["Default"] = 18
+	})
 end
