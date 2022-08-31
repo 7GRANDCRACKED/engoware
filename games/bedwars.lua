@@ -1416,14 +1416,13 @@ shared.Check = true -- keep old game lighting or whatever
     })
 end
 
-do
-    local scaffold = {["Enabled"] = false}
-    scaffold = GuiLibrary.Objects.movementWindow.API.CreateOptionsButton({
-        ["Name"] = "scaffold",
-        ["Function"] = function(callback) 
-            if callback then 
-                BindToStepped("Scaffold", function()
-                    if isAlive() and lplr.Character:FindFirstChild("Humanoid") ~= nil then
+do 
+    local old
+    local Sprint = {}; Sprint = GuiLibrary.Objects.movementWindow.API.CreateOptionsButton({
+        Name = "scaffold",
+        Function = function(callback) 
+            if callback then
+                if isAlive() and lplr.Character:FindFirstChild("Humanoid") ~= nil then
                         local block = getblockitem()
                         --printtable(block)
                         local newpos = lplr.Character.HumanoidRootPart.Position
@@ -1450,8 +1449,6 @@ do
                         end
                     end
                 end)
-            else
-                UnbindFromStepped("Scaffold")
             end
         end
     })
